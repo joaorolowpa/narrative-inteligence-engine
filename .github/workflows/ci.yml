@@ -23,7 +23,7 @@ jobs:
           pip install -e .[dev]
 
       - name: Run tests
-        run: pytest -q
+        run: PYTHONPATH=. pytest -q
 
       - name: Run lint
         run: ruff check .
