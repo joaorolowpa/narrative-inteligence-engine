@@ -25,6 +25,47 @@ Guia operacional para contribuir neste monorepo com consistencia de arquitetura,
 - Nao commitar segredos, tokens ou credenciais.
 - Preferir ajustes reprodutiveis via `docker compose` ao inves de passos manuais.
 
+## Politica De TDD (Obrigatoria)
+- Toda feature, correcao ou refatoracao solicitada deve seguir TDD.
+- Ordem obrigatoria: primeiro escrever/ajustar teste que falha, depois implementar o codigo para passar, e por fim refatorar sem quebrar testes.
+- Nenhuma alteracao deve ser entregue sem execucao de testes relevantes (`pytest`) e status verde.
+
+## Qualidade E Cobertura
+- Cobertura minima obrigatoria: 80% em `core` e `services.api`.
+- Toda correcao de bug deve incluir teste de regressao reproduzindo o erro original.
+- Nao misturar mudancas de natureza diferente no mesmo commit (ex.: `feat` + `refactor`).
+
+## Validacao Antes Do Push
+- Executar `make check` antes de abrir PR ou dar push em branch principal.
+- O `check` deve passar em ambiente local/container sem ignorar falhas.
+
+## Versionamento
+- Seguir SemVer (`MAJOR.MINOR.PATCH`).
+- `PATCH`: correcao sem quebrar contrato.
+- `MINOR`: nova funcionalidade compativel.
+- `MAJOR`: mudanca incompativel de contrato/comportamento.
+
+## Observabilidade E Seguranca
+- Nao registrar segredos em logs (tokens, chaves, credenciais, payload sensivel).
+- Mensagens de erro devem ser acionaveis e sem exposicao de dados sensiveis.
+
+## Contrato De API
+- Toda mudanca de request/response/status code exige:
+- Atualizacao de testes automatizados.
+- Atualizacao de documentacao correspondente.
+
+## Dependencias
+- Nao usar versao solta (`*`) em dependencias.
+- Manter faixas de versao com limites inferiores e superiores.
+
+## Rollback
+- Toda mudanca critica deve ter plano de rollback simples e rapido.
+- Priorizar entregas pequenas para facilitar reversao segura.
+
+## Politica Docker/Pip
+- Nao usar `--trusted-host` como padrao em producao.
+- Se ambiente corporativo exigir, injetar via `PIP_TRUSTED_HOST_FLAGS` no build.
+
 ## Padrao De Commits (Indicacoes)
 Seguir Conventional Commits no formato:
 
