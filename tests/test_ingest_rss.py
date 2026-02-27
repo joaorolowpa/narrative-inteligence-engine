@@ -37,6 +37,8 @@ def test_ingest_rss_dedup_chunking_and_persistence(tmp_path, monkeypatch) -> Non
     assert first["inserted"] == 1
     assert second["inserted"] == 0
     assert second["duplicates"] == 1
+    assert "feed_stats" in first
+    assert first["feed_stats"][0]["inserted"] >= 1
 
     session_factory = get_session_factory()
     with session_factory() as session:
@@ -58,3 +60,40 @@ def test_sqlite_wal_is_enabled(tmp_path, monkeypatch) -> None:
         mode = conn.execute(text("PRAGMA journal_mode;")).scalar_one()
 
     assert str(mode).lower() == "wal"
+
+
+def test_ingest_http_requests_send_user_agent_header(tmp_path, monkeypatch) -> None:
+    db_url = f"sqlite:///{tmp_path / 'ua.db'}"
+    monkeypatch.setenv("DATABASE_URL", db_url)
+    monkeypatch.setenv("RSS_FEEDS", "https://example.com/feed.xml")
+    monkeypatch.setenv("RSS_DOMAIN_SLEEP", "0")
+
+    calls: list[dict[str, object]] = []
+
+    class FakeResponse:
+        def __init__(self, url: str) -> None:
+            self.url = url
+            self.content = b"<rss/>"
+            self.text = "<html><body>conteudo da materia</body></html>"
+
+        def raise_for_status(self) -> None:
+            return None
+
+    def fake_get(url: str, timeout: int, verify: bool, headers: dict[str, str] | None = None):
+        calls.append({"url": url, "timeout": timeout, "verify": verify, "headers": headers or {}})
+        return FakeResponse(url)
+
+    def fake_feed_parse(_content: bytes):
+        return SimpleNamespace(
+            feed={"title": "Example Feed"},
+            entries=[{"link": "https://example.com/post-1", "title": "Post 1"}],
+        )
+
+    monkeypatch.setattr(jobs.requests, "get", fake_get)
+    monkeypatch.setattr(jobs.feedparser, "parse", fake_feed_parse)
+
+    result = jobs.ingest_rss()
+
+    assert result["inserted"] == 1
+    assert len(calls) >= 2
+    assert all(call["headers"].get("User-Agent") for call in calls)
