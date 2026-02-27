@@ -1,0 +1,58 @@
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: services/api/Dockerfile
+    container_name: narrative-api
+    command: uvicorn services.api.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../../data:/app/data
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    depends_on:
+      - redis
+
+  worker:
+    build:
+      context: ../..
+      dockerfile: services/worker/Dockerfile
+    container_name: narrative-worker
+    environment:
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ../../data:/app/data
+    depends_on:
+      - redis
+
+  ui:
+    build:
+      context: ../..
+      dockerfile: services/ui/Dockerfile
+    container_name: narrative-ui
+    command: streamlit run services/ui/app.py --server.port=8501 --server.address=0.0.0.0
+    ports:
+      - "8501:8501"
+    volumes:
+      - ../../data:/app/data
+    depends_on:
+      - api
+
+  redis:
+    image: redis:7-alpine
+    container_name: narrative-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ../../data:/data
