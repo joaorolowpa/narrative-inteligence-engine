@@ -9,6 +9,10 @@ COPY services ./services
 COPY tests ./tests
 
 RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -e .[dev]
+    --trusted-host pypi.org --trusted-host files.pythonhosted.org --trusted-host pypi.python.org \
+    --default-timeout=120 --retries=20 \
+    && pip install --no-cache-dir -e .[dev] \
+    --trusted-host pypi.org --trusted-host files.pythonhosted.org --trusted-host pypi.python.org \
+    --default-timeout=120 --retries=20
 
 CMD ["uvicorn", "services.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
