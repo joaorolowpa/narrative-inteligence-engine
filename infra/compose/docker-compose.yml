@@ -3,6 +3,9 @@ services:
     build:
       context: ../..
       dockerfile: services/api/Dockerfile
+      args:
+        PIP_NETWORK_FLAGS: ${PIP_NETWORK_FLAGS:---default-timeout=120 --retries=20}
+        PIP_TRUSTED_HOST_FLAGS: ${PIP_TRUSTED_HOST_FLAGS:-}
     container_name: narrative-api
     command: uvicorn services.api.main:app --host 0.0.0.0 --port 8000
     ports:
@@ -28,6 +31,9 @@ services:
     build:
       context: ../..
       dockerfile: services/worker/Dockerfile
+      args:
+        PIP_NETWORK_FLAGS: ${PIP_NETWORK_FLAGS:---default-timeout=120 --retries=20}
+        PIP_TRUSTED_HOST_FLAGS: ${PIP_TRUSTED_HOST_FLAGS:-}
     container_name: narrative-worker
     environment:
       REDIS_URL: redis://redis:6379/0
@@ -40,6 +46,9 @@ services:
     build:
       context: ../..
       dockerfile: services/ui/Dockerfile
+      args:
+        PIP_NETWORK_FLAGS: ${PIP_NETWORK_FLAGS:---default-timeout=120 --retries=20}
+        PIP_TRUSTED_HOST_FLAGS: ${PIP_TRUSTED_HOST_FLAGS:-}
     container_name: narrative-ui
     command: streamlit run services/ui/app.py --server.port=8501 --server.address=0.0.0.0
     ports:
