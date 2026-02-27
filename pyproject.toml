@@ -15,6 +15,11 @@ dependencies = [
   "redis>=5.0,<6.0",
   "streamlit>=1.40,<2.0",
   "pydantic>=2.8,<3.0",
+  "sqlalchemy>=2.0,<3.0",
+  "alembic>=1.13,<2.0",
+  "requests>=2.32,<3.0",
+  "feedparser>=6.0,<7.0",
+  "beautifulsoup4>=4.12,<5.0",
 ]
 
 [project.optional-dependencies]

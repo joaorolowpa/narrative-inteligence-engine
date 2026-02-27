@@ -6,6 +6,8 @@ ARG PIP_TRUSTED_HOST_FLAGS=""
 ARG PIP_NETWORK_FLAGS="--default-timeout=120 --retries=20"
 
 COPY pyproject.toml README.md ./
+COPY alembic.ini ./
+COPY alembic ./alembic
 COPY libs ./libs
 COPY services ./services
 COPY tests ./tests
