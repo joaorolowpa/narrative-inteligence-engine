@@ -21,3 +21,8 @@ class DocumentResponse(BaseModel):
     hash: str
     raw_text: str
     created_at: datetime
+
+
+class ClearDocumentsResponse(BaseModel):
+    deleted_documents: int
+    deleted_chunks: int

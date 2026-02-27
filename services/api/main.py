@@ -7,7 +7,12 @@ from redis import Redis
 from rq import Queue
 
 from core import DocumentDAO, get_session_factory, init_db
-from core.schemas import DocumentResponse, HealthResponse, JobEnqueueResponse
+from core.schemas import (
+    ClearDocumentsResponse,
+    DocumentResponse,
+    HealthResponse,
+    JobEnqueueResponse,
+)
 
 app = FastAPI(title="Narrative Intelligence API")
 
@@ -59,3 +64,34 @@ def list_documents() -> list[DocumentResponse]:
             )
             for item in items
         ]
+
+
+@app.get("/documents/latest", response_model=DocumentResponse)
+def get_latest_document() -> DocumentResponse:
+    session_factory = get_session_factory()
+    with session_factory() as session:
+        item = DocumentDAO(session).get_latest()
+        if item is None:
+            raise HTTPException(status_code=404, detail="No documents found")
+        return DocumentResponse(
+            id=item.id,
+            source=item.source,
+            url=item.url,
+            title=item.title,
+            published_at=item.published_at,
+            hash=item.hash,
+            raw_text=item.raw_text,
+            created_at=item.created_at,
+        )
+
+
+@app.delete("/documents", response_model=ClearDocumentsResponse)
+def clear_documents() -> ClearDocumentsResponse:
+    session_factory = get_session_factory()
+    with session_factory() as session:
+        deleted_documents, deleted_chunks = DocumentDAO(session).clear_all()
+        session.commit()
+        return ClearDocumentsResponse(
+            deleted_documents=deleted_documents,
+            deleted_chunks=deleted_chunks,
+        )

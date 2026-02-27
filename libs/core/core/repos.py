@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from .domain import Narrative
@@ -62,6 +62,16 @@ class DocumentDAO:
     def list_latest(self, limit: int = 50) -> list[Document]:
         stmt = select(Document).order_by(Document.created_at.desc()).limit(limit)
         return list(self.session.execute(stmt).scalars().all())
+
+    def get_latest(self) -> Document | None:
+        stmt = select(Document).order_by(Document.created_at.desc()).limit(1)
+        return self.session.execute(stmt).scalar_one_or_none()
+
+    def clear_all(self) -> tuple[int, int]:
+        deleted_chunks = self.session.execute(delete(Chunk)).rowcount or 0
+        deleted_documents = self.session.execute(delete(Document)).rowcount or 0
+        self.session.flush()
+        return deleted_documents, deleted_chunks
 
 
 class ChunkDAO:
